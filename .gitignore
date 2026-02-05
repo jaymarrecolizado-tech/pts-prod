@@ -64,3 +64,19 @@ htmlcov/
 
 # Windows problematic files
 nul
+
+# AI Assistant Cache
+.agent/
+.claude/
+.codebuddy/
+.cursor/
+.gemini/
+.kiro/
+.opencode/
+.qoder/
+.roo/
+.trae/
+.windsurf/
+.claude-ops/
+.continue/
+.codex/
