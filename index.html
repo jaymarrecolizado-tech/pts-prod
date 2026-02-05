@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Tracking System</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1><span>📍</span> <span>Project Tracker</span></h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#" class="active" data-tab="dashboard"><span>📊</span> <span>Dashboard</span></a></li>
+                <li><a href="#" data-tab="projects"><span>📋</span> <span>All Projects</span></a></li>
+                <li><a href="#" data-tab="manual-entry"><span>✏️</span> <span>Manual Entry</span></a></li>
+                <li><a href="#" data-tab="data-migration"><span>📤</span> <span>Data Migration</span></a></li>
+                <li><a href="#" data-tab="reports"><span>📈</span> <span>Reports</span></a></li>
+            </ul>
+            <div class="stats-summary">
+                <div class="stats-item">
+                    <span>Total Projects</span>
+                    <span id="total-projects">0</span>
+                </div>
+                <div class="stats-item">
+                    <span>Completed</span>
+                    <span id="completed-projects">0</span>
+                </div>
+                <div class="stats-item">
+                    <span>Pending</span>
+                    <span id="pending-projects">0</span>
+                </div>
+                <div class="stats-item">
+                    <span>Last Updated</span>
+                    <span id="last-updated">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <h1><span>🗺️</span> Project Implementation Tracking System</h1>
+                <div class="header-actions">
+                    <button class="btn" id="export-btn"><span>⬇️</span> Export Data</button>
+                    <button class="btn btn-secondary" id="refresh-btn"><span>🔄</span> Refresh</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><span>📍</span> Project Implementation Map</h2>
+                            <div>
+                                <button class="btn btn-secondary" id="filter-all">All Projects</button>
+                                <button class="btn" id="filter-done">Completed</button>
+                                <button class="btn btn-warning" id="filter-pending">Pending</button>
+                            </div>
+                        </div>
+                        <div id="map"></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><span>📈</span> Project Status Overview</h2>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="status-chart"></canvas>
+                        </div>
+
+                        <div class="card-header" style="margin-top: 25px;">
+                            <h2><span>📅</span> Implementation Timeline</h2>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="timeline-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><span>📋</span> Recent Projects</h2>
+                        <button class="btn btn-secondary" id="view-all-projects">View All Projects</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="recent-projects-table">
+                            <thead>
+                                <tr>
+                                    <th>Site Code</th>
+                                    <th>Project Name</th>
+                                    <th>Site Name</th>
+                                    <th>Location</th>
+                                    <th>Date of Activation</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects Tab -->
+            <div id="projects" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><span>📋</span> All Projects</h2>
+                        <div>
+                            <input type="text" id="search-projects" placeholder="Search projects..." style="padding: 8px 15px; border: 1px solid #ddd; border-radius: 4px; width: 250px;">
+                            <button class="btn" style="margin-left: 10px;" id="add-project-btn">➕ Add New Project</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="projects-table">
+                            <thead>
+                                <tr>
+                                    <th>Site Code</th>
+                                    <th>Project Name</th>
+                                    <th>Site Name</th>
+                                    <th>Barangay</th>
+                                    <th>Municipality</th>
+                                    <th>Province</th>
+                                    <th>District</th>
+                                    <th>Coordinates</th>
+                                    <th>Date of Activation</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manual Entry Tab -->
+            <div id="manual-entry" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><span>✏️</span> Manual Project Entry</h2>
+                    </div>
+                    <form id="manual-entry-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="site-code">Site Code *</label>
+                                <input type="text" id="site-code" required pattern="[A-Za-z0-9\-]+" title="Letters, numbers, and hyphens only">
+                            </div>
+                            <div class="form-group">
+                                <label for="project-name">Project Name *</label>
+                                <input type="text" id="project-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="site-name">Site Name *</label>
+                                <input type="text" id="site-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="barangay">Barangay *</label>
+                                <input type="text" id="barangay" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="municipality">Municipality *</label>
+                                <input type="text" id="municipality" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="province">Province *</label>
+                                <select id="province" required>
+                                    <option value="">Select Province</option>
+                                    <option value="Batanes">Batanes</option>
+                                    <option value="Cagayan">Cagayan</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="district">District *</label>
+                                <select id="district" required>
+                                    <option value="">Select District</option>
+                                    <option value="District I">District I</option>
+                                    <option value="District III">District III</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="latitude">Latitude * (-90 to 90)</label>
+                                <input type="number" id="latitude" step="0.000001" min="-90" max="90" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="longitude">Longitude * (-180 to 180)</label>
+                                <input type="number" id="longitude" step="0.000001" min="-180" max="180" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="activation-date">Date of Activation *</label>
+                                <input type="date" id="activation-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="status">Status *</label>
+                                <select id="status" required>
+                                    <option value="Done">Done</option>
+                                    <option value="Pending">Pending</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notes">Notes</label>
+                            <textarea id="notes" rows="3" maxlength="1000"></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-accent" id="clear-form-btn">Clear Form</button>
+                            <button type="submit" class="btn">Submit Project</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><span>🔍</span> Auto-Correction Suggestions</h2>
+                    </div>
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 8px; margin-top: 10px;">
+                        <p><strong>System will automatically suggest corrections for:</strong></p>
+                        <ul style="padding-left: 20px; margin-top: 10px;">
+                            <li>Province/Municipality/Barangay name standardization</li>
+                            <li>Date format validation and correction</li>
+                            <li>Coordinate format validation</li>
+                            <li>Status value normalization</li>
+                            <li>Site code format validation</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-style: italic; color: #777;">
+                            As you type in the form above, the system will provide real-time suggestions to ensure data consistency.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Migration Tab -->
+            <div id="data-migration" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><span>📤</span> Import Projects from CSV/Excel</h2>
+                    </div>
+                    <div class="csv-import-container">
+                        <div class="drop-zone" id="drop-zone">
+                            <div>⬇️</div>
+                            <h3>Drag & Drop CSV/Excel File Here</h3>
+                            <p>or click to browse files</p>
+                            <input type="file" id="file-input" class="file-input" accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                        </div>
+
+                        <div class="validation-results hidden" id="validation-results">
+                            <div class="validation-header">
+                                <h3>Validation Results</h3>
+                                <button class="btn btn-secondary" id="download-template">Download Template</button>
+                            </div>
+                            <div id="validation-messages">
+                            </div>
+                            <div style="margin-top: 15px;">
+                                <button class="btn" id="import-data-btn">Import Valid Data</button>
+                                <button class="btn btn-accent" id="download-errors-btn">Download Error Report</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 25px;">
+                    <div class="card-header">
+                        <h2><span>✅</span> Data Validation Rules</h2>
+                    </div>
+                    <div style="padding: 20px;">
+                        <h3 style="margin-bottom: 15px; color: var(--dark-color);">The system checks for:</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                            <div>
+                                <h4 style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"><span>✓</span> Required Fields</h4>
+                                <p>All mandatory fields must be present and not empty</p>
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"><span>✓</span> Data Format Validation</h4>
+                                <p>Coordinates must be valid numbers, dates must follow standard format</p>
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"><span>✓</span> Value Consistency</h4>
+                                <p>Province, Municipality, Barangay values must be consistent with existing data</p>
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"><span>✓</span> Duplicate Detection</h4>
+                                <p>Site codes must be unique; duplicates will be flagged</p>
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"><span>✓</span> Auto-correction</h4>
+                                <p>Common errors like extra spaces, case inconsistencies will be automatically fixed</p>
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"><span>✓</span> Status Validation</h4>
+                                <p>Status values must be either "Done" or "Pending"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports" class="tab-content">
+                <div class="tabs">
+                    <div class="tab active" data-report="summary">Summary Report</div>
+                    <div class="tab" data-report="province">Province Analysis</div>
+                    <div class="tab" data-report="timeline">Timeline Report</div>
+                    <div class="tab" data-report="status">Status Report</div>
+                </div>
+
+                <div id="summary-report" class="tab-content active">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><span>📊</span> Project Implementation Summary</h2>
+                            <button class="btn" id="generate-summary-pdf">Generate PDF Report</button>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 30px;">
+                                <div style="background: white; padding: 20px; border-radius: var(--border-radius); box-shadow: var(--box-shadow); text-align: center;">
+                                    <h3 style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 10px;" id="report-total">0</h3>
+                                    <p style="color: #777; font-weight: 500;">Total Projects</p>
+                                </div>
+                                <div style="background: white; padding: 20px; border-radius: var(--border-radius); box-shadow: var(--box-shadow); text-align: center;">
+                                    <h3 style="font-size: 2.5rem; color: var(--secondary-color); margin-bottom: 10px;" id="report-completed">0</h3>
+                                    <p style="color: #777; font-weight: 500;">Completed Projects</p>
+                                </div>
+                                <div style="background: white; padding: 20px; border-radius: var(--border-radius); box-shadow: var(--box-shadow); text-align: center;">
+                                    <h3 style="font-size: 2.5rem; color: var(--warning-color); margin-bottom: 10px;" id="report-pending">0</h3>
+                                    <p style="color: #777; font-weight: 500;">Pending Projects</p>
+                                </div>
+                                <div style="background: white; padding: 20px; border-radius: var(--border-radius); box-shadow: var(--box-shadow); text-align: center;">
+                                    <h3 style="font-size: 2.5rem; color: var(--dark-color); margin-bottom: 10px;" id="report-provinces">0</h3>
+                                    <p style="color: #777; font-weight: 500;">Provinces Covered</p>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 20px;">
+                                <div class="card" style="margin-bottom: 0;">
+                                    <div class="card-header">
+                                        <h3>Projects by Province</h3>
+                                    </div>
+                                    <div class="chart-container">
+                                        <canvas id="province-chart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="card" style="margin-bottom: 0;">
+                                    <div class="card-header">
+                                        <h3>Projects by Status</h3>
+                                    </div>
+                                    <div class="chart-container">
+                                        <canvas id="status-distribution-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="province-report" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><span>🏘️</span> Province Analysis Report</h2>
+                            <button class="btn" id="generate-province-pdf">Generate PDF Report</button>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div class="chart-container">
+                                <canvas id="province-detailed-chart"></canvas>
+                            </div>
+
+                            <div style="margin-top: 30px;">
+                                <h3 style="margin-bottom: 15px; color: var(--dark-color);">Province Implementation Details</h3>
+                                <div class="table-container">
+                                    <table id="province-details-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Province</th>
+                                                <th>Total Projects</th>
+                                                <th>Completed</th>
+                                                <th>Pending</th>
+                                                <th>Completion Rate</th>
+                                                <th>First Implementation</th>
+                                                <th>Last Implementation</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="timeline-report" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><span>📅</span> Implementation Timeline Report</h2>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div class="chart-container">
+                                <canvas id="timeline-detailed-chart"></canvas>
+                            </div>
+
+                            <div style="margin-top: 30px;">
+                                <h3 style="margin-bottom: 15px; color: var(--dark-color);">Monthly Implementation Progress</h3>
+                                <div class="table-container">
+                                    <table id="timeline-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Month/Year</th>
+                                                <th>New Projects</th>
+                                                <th>Completed</th>
+                                                <th>Pending</th>
+                                                <th>Cumulative Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="status-report" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><span>✅</span> Status Analysis Report</h2>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px;">
+                                <div class="card" style="margin-bottom: 0;">
+                                    <div class="card-header">
+                                        <h3>Pending Projects by Duration</h3>
+                                    </div>
+                                    <div class="chart-container">
+                                        <canvas id="pending-duration-chart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="card" style="margin-bottom: 0;">
+                                    <div class="card-header">
+                                        <h3>Completion Rate by Province</h3>
+                                    </div>
+                                    <div class="chart-container">
+                                        <canvas id="completion-rate-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 20px;">
+                                <h3 style="margin-bottom: 15px; color: var(--dark-color);">Pending Projects Requiring Attention</h3>
+                                <div class="table-container">
+                                    <table id="pending-projects-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Site Code</th>
+                                                <th>Project Name</th>
+                                                <th>Site Name</th>
+                                                <th>Location</th>
+                                                <th>Date of Activation</th>
+                                                <th>Pending Duration</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils/sanitizer.js"></script>
+    <script src="js/utils/validator.js"></script>
+    <script src="js/utils/debounce.js"></script>
+    <script src="js/services/dataService.js"></script>
+    <script src="js/services/mapService.js"></script>
+    <script src="js/services/chartService.js"></script>
+    <script src="js/services/uiService.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
