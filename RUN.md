@@ -1,4 +1,4 @@
-# Complete Setup Guide - Project Tracking System
+# Complete Setup Guide - ATLAS
 
 ## Quick Start
 
@@ -67,7 +67,12 @@ C:\Users\DICT\Desktop\mays\
 │   │   └── store/            # Zustand state
 │   └── package.json
 │
-└── RUN.md                     # This file
+├── landing.html                 # Landing page
+├── login.html                 # Login page
+├── index.html                 # Main dashboard
+├── js/                       # JavaScript modules
+├── css/                      # Stylesheets
+└── RUN.md                    # This file
 ```
 
 ---

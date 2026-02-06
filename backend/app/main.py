@@ -1,6 +1,7 @@
 """
 FastAPI application entry point
 """
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -11,7 +12,17 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 import logging
 
 from app.core.config import get_settings
-from app.api.endpoints import auth, projects, users, comments, attachments, tags, notifications, reports, analytics
+from app.api.endpoints import (
+    auth,
+    projects,
+    users,
+    comments,
+    attachments,
+    tags,
+    notifications,
+    reports,
+    analytics,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,10 +34,10 @@ settings = get_settings()
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Enterprise-grade Project Tracking System API",
+    description="Enterprise-grade ATLAS - Advanced Tracking & Location-based Analytics System API",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
-    openapi_url="/api/openapi.json"
+    openapi_url="/api/openapi.json",
 )
 
 # CORS middleware
@@ -48,7 +59,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     """Handle HTTP exceptions"""
     return JSONResponse(
         status_code=exc.status_code,
-        content={"detail": exc.detail, "status_code": exc.status_code}
+        content={"detail": exc.detail, "status_code": exc.status_code},
     )
 
 
@@ -56,11 +67,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle validation errors"""
     return JSONResponse(
-        status_code=422,
-        content={
-            "detail": "Validation Error",
-            "errors": exc.errors()
-        }
+        status_code=422, content={"detail": "Validation Error", "errors": exc.errors()}
     )
 
 
@@ -69,6 +76,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 async def startup_event():
     """Initialize database and other resources"""
     from app.db.session import init_db
+
     logger.info("Starting up...")
     await init_db()
     logger.info("Database initialized")
@@ -88,7 +96,7 @@ async def health_check():
     return {
         "status": "healthy",
         "app": settings.PROJECT_NAME,
-        "version": settings.VERSION
+        "version": settings.VERSION,
     }
 
 
@@ -97,66 +105,50 @@ async def health_check():
 async def root():
     """Root endpoint"""
     return {
-        "message": "Project Tracking System API",
+        "message": "ATLAS API",
         "version": settings.VERSION,
         "docs": "/api/docs",
-        "redoc": "/api/redoc"
+        "redoc": "/api/redoc",
     }
 
 
 # Include routers
 app.include_router(
-    auth.router,
-    prefix=f"{settings.API_V1_PREFIX}/auth",
-    tags=["Authentication"]
+    auth.router, prefix=f"{settings.API_V1_PREFIX}/auth", tags=["Authentication"]
 )
 
 app.include_router(
-    projects.router,
-    prefix=f"{settings.API_V1_PREFIX}/projects",
-    tags=["Projects"]
+    projects.router, prefix=f"{settings.API_V1_PREFIX}/projects", tags=["Projects"]
 )
 
 app.include_router(
-    users.router,
-    prefix=f"{settings.API_V1_PREFIX}/users",
-    tags=["Users"]
+    users.router, prefix=f"{settings.API_V1_PREFIX}/users", tags=["Users"]
 )
 
 app.include_router(
-    comments.router,
-    prefix=f"{settings.API_V1_PREFIX}/comments",
-    tags=["Comments"]
+    comments.router, prefix=f"{settings.API_V1_PREFIX}/comments", tags=["Comments"]
 )
 
 app.include_router(
     attachments.router,
     prefix=f"{settings.API_V1_PREFIX}/attachments",
-    tags=["Attachments"]
+    tags=["Attachments"],
 )
 
-app.include_router(
-    tags.router,
-    prefix=f"{settings.API_V1_PREFIX}/tags",
-    tags=["Tags"]
-)
+app.include_router(tags.router, prefix=f"{settings.API_V1_PREFIX}/tags", tags=["Tags"])
 
 app.include_router(
     notifications.router,
     prefix=f"{settings.API_V1_PREFIX}/notifications",
-    tags=["Notifications"]
+    tags=["Notifications"],
 )
 
 app.include_router(
-    reports.router,
-    prefix=f"{settings.API_V1_PREFIX}/reports",
-    tags=["Reports"]
+    reports.router, prefix=f"{settings.API_V1_PREFIX}/reports", tags=["Reports"]
 )
 
 app.include_router(
-    analytics.router,
-    prefix=f"{settings.API_V1_PREFIX}/analytics",
-    tags=["Analytics"]
+    analytics.router, prefix=f"{settings.API_V1_PREFIX}/analytics", tags=["Analytics"]
 )
 
 

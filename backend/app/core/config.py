@@ -1,6 +1,7 @@
 """
 Core configuration for the application
 """
+
 from pydantic_settings import BaseSettings
 from typing import Optional
 from functools import lru_cache
@@ -11,7 +12,7 @@ class Settings(BaseSettings):
 
     # API
     API_V1_PREFIX: str = "/api/v1"
-    PROJECT_NAME: str = "Project Tracking System"
+    PROJECT_NAME: str = "ATLAS"
     VERSION: str = "1.0.0"
 
     # Security
@@ -21,7 +22,9 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # Database
-    DATABASE_URL: str = "mysql+aiomysql://tracker_user:tracker_password@localhost:3306/project_tracker"
+    DATABASE_URL: str = (
+        "mysql+aiomysql://tracker_user:tracker_password@localhost:3306/project_tracker"
+    )
     DB_POOL_SIZE: int = 10
     DB_MAX_OVERFLOW: int = 20
 

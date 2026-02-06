@@ -1,4 +1,4 @@
-# Project Tracking System - Enterprise Grade
+# ATLAS - Advanced Tracking & Location-based Analytics System
 
 A full-stack enterprise-grade project tracking and visualization system built with Python FastAPI, React, and MySQL.
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The DICT R2 Project Tracking System implements comprehensive authentication and role-based access control (RBAC) to secure access to the platform.
+ATLAS implements comprehensive authentication and role-based access control (RBAC) to secure access to the platform.
 
 ## Features
 
