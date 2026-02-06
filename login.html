@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Project Implementation Tracking System</title>
+    <title>Login - DICT R2 Project Tracking System</title>
     <meta name="description" content="Secure login for Project Implementation Tracking System">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -676,7 +676,16 @@
     </div>
 
     <script>
+        const API_BASE_URL = 'http://localhost:8000/api/v1';
+
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if already logged in
+            const accessToken = localStorage.getItem('access_token');
+            if (accessToken) {
+                window.location.href = 'index.html';
+                return;
+            }
+
             const form = document.getElementById('login-form');
             const emailInput = document.getElementById('email');
             const passwordInput = document.getElementById('password');
@@ -699,6 +708,23 @@
             function hideError(input, errorElement) {
                 input.classList.remove('error');
                 errorElement.classList.remove('show');
+            }
+
+            function showApiError(message) {
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = 'background: #fee2e2; color: #991b1b; padding: 16px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #fca5a5; display: flex; align-items: center; gap: 8px;';
+                errorDiv.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; flex-shrink: 0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>${message}</span>
+                `;
+                const formHeader = document.querySelector('.form-header');
+                formHeader.parentNode.insertBefore(errorDiv, formHeader.nextSibling);
+
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 5000);
             }
 
             emailInput.addEventListener('blur', function() {
@@ -752,7 +778,7 @@
                 }
             });
 
-            form.addEventListener('submit', function(e) {
+            form.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 let isValid = true;
 
@@ -773,9 +799,46 @@
                     submitBtn.innerHTML = '<div class="spinner"></div>';
                     submitBtn.classList.add('loading');
 
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1500);
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                username_or_email: emailValue,
+                                password: passwordValue
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            // Store tokens
+                            localStorage.setItem('access_token', data.access_token);
+                            localStorage.setItem('refresh_token', data.refresh_token);
+
+                            // Store user info
+                            const userResponse = await fetch(`${API_BASE_URL}/auth/me`, {
+                                headers: {
+                                    'Authorization': `Bearer ${data.access_token}`
+                                }
+                            });
+                            const userData = await userResponse.json();
+                            localStorage.setItem('user', JSON.stringify(userData));
+
+                            // Redirect to dashboard
+                            window.location.href = 'index.html';
+                        } else {
+                            throw new Error(data.detail || 'Login failed');
+                        }
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        showApiError(error.message || 'Login failed. Please check your credentials and try again.');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<span class="btn-text">Sign In</span>';
+                        submitBtn.classList.remove('loading');
+                    }
                 }
             });
         });

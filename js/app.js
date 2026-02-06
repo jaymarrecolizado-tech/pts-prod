@@ -360,6 +360,12 @@
     };
 
     window.deleteProject = function(siteCode) {
+        // Check delete permission
+        if (!AuthService.hasPermission('delete_project')) {
+            UIService.showError('You do not have permission to delete projects.');
+            return;
+        }
+
         if (confirm(`Are you sure you want to delete project "${siteCode}"?`)) {
             const result = DataService.deleteProject(siteCode);
             if (result.success) {

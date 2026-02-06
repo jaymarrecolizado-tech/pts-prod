@@ -831,3 +831,34 @@ table tr.status-done td:first-child {
         transition-duration: 0.01ms !important;
     }
 }
+
+
+/* Logout Button Styles */
+.nav-logout-btn {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    box-shadow: 0 4px 14px rgba(231, 76, 60, 0.3);
+}
+
+.nav-logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+}
+
+.nav-logout-btn:active {
+    transform: translateY(0);
+}
+
+.nav-logout-btn svg {
+    flex-shrink: 0;
+}
+
